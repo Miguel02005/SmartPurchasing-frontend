@@ -24,7 +24,6 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -36,10 +35,6 @@ export default function RegisterPage() {
 
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden");
-      return;
-    }
-    if (!agreed) {
-      setError("Debes aceptar los términos para continuar");
       return;
     }
 
