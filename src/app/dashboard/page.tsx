@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import {
   Package,
   Plus,
-  LogOut,
   DollarSign,
   Clock3,
   Boxes,
@@ -25,10 +24,11 @@ import {
 import { Product, CreateProductDto } from '@/types/product.types';
 import ProductForm from '@/components/ProductForm';
 import ProductTable from '@/components/ProductTable';
+import AppHeader from '@/components/AppHeader';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading, user, logout } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -154,10 +154,6 @@ export default function DashboardPage() {
     };
   }, [products]);
 
-  const handleLogout = async () => {
-  await logout();
-  router.push('/');
-};
 
 
   if (isLoading) {
@@ -180,59 +176,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-slate-50">
 
       {/* ================= HEADER ================= */}
-      <header className="h-20 bg-white border-b border-slate-100">
-        <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
-
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#164b8a] flex items-center justify-center shadow-sm">
-              <Package className="w-5 h-5 text-white" />
-            </div>
-
-            <div>
-              <p className="font-bold text-slate-900 leading-none">
-                SmartPurchasing
-              </p>
-
-              <p className="text-xs text-slate-400 mt-1">
-                Gestión de compras
-              </p>
-            </div>
-          </div>
-
-          {/* Usuario */}
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:block text-right">
-              <p className="text-sm font-medium text-slate-800">
-                {user?.email || 'Usuario'}
-              </p>
-
-              <p className="text-xs text-slate-400">
-                Cuenta empresarial
-              </p>
-            </div>
-
-            <button
-              onClick={handleLogout}
-              className="
-                w-10 h-10
-                rounded-xl
-                border border-slate-200
-                bg-white
-                flex items-center justify-center
-                text-slate-500
-                hover:text-red-600
-                hover:border-red-100
-                hover:bg-red-50
-                transition-all
-              "
-              title="Cerrar sesión"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
 
       {/* ================= MAIN ================= */}
