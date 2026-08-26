@@ -103,10 +103,11 @@ export const usePurchaseOrderStore = create<PurchaseOrderState>((set, get) => ({
     return updated;
   },
 
-  // El backend recalcula subTotal en el servidor al editar/eliminar una
-  // línea, así que después de cada operación volvemos a pedir la orden
-  // completa (fetchPurchaseOrder) para traer los totales ya actualizados
-  // en vez de intentar recalcularlos nosotros en el cliente.
+  // El acordeón de líneas ahora vive en la tabla del LISTADO (no en una
+  // página aparte), y GET /purchase-orders/mine ya trae details[] anidado
+  // en cada orden. Por eso, tras editar/eliminar una línea, refrescamos
+  // el listado completo (fetchMyPurchaseOrders) en vez de una sola orden
+  // — así los totales y las líneas quedan sincronizados en la tabla.
   updateDetailLine: async (
     purchaseOrderId: number,
     purchaseOrderDetailId: number,
@@ -120,7 +121,7 @@ export const usePurchaseOrderStore = create<PurchaseOrderState>((set, get) => ({
       dto,
       token,
     );
-    await get().fetchPurchaseOrder(purchaseOrderId, token);
+    await get().fetchMyPurchaseOrders(token);
   },
 
   removeDetailLine: async (
@@ -130,7 +131,7 @@ export const usePurchaseOrderStore = create<PurchaseOrderState>((set, get) => ({
   ) => {
     set({ error: '' });
     await removePurchaseOrderDetail(purchaseOrderId, purchaseOrderDetailId, token);
-    await get().fetchPurchaseOrder(purchaseOrderId, token);
+    await get().fetchMyPurchaseOrders(token);
   },
 
   clearSelected: () => set({ selectedPurchaseOrder: null }),

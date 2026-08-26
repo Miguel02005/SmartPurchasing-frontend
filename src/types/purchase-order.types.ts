@@ -30,8 +30,10 @@ export interface PurchaseOrder {
   freight: number;
   totalDue: number; // calculado en el backend, no se envía en create/update
   modifiedDate: string;
-  // Solo viene poblado cuando consultas GET /purchase-orders/:id (findOne),
-  // el listado GET /purchase-orders/mine no trae las líneas.
+  // El backend ahora incluye relations: { details: true } tanto en
+  // GET /purchase-orders/mine como en GET /purchase-orders/:id, así que
+  // details[] viene poblado en AMBOS endpoints — no hace falta pedir el
+  // detalle por separado para mostrar las líneas de una orden del listado.
   details?: PurchaseOrderDetail[];
 }
 
@@ -50,16 +52,12 @@ export interface CreatePurchaseOrderDto {
   shipMethodId: number;
   orderDate: string;
   shipDate?: string;
-  // Normalmente se recalculan al agregar líneas de detalle,
-  // pero el backend los acepta opcionalmente desde ya.
   subTotal?: number;
   taxAmt?: number;
   freight?: number;
   details?: CreatePurchaseOrderDetailDto[];
 }
 
-// El backend no permite actualizar businessEntityId ni employeeId vía este DTO;
-// status sí es editable en el update (no en el create).
 export type UpdatePurchaseOrderDto = Partial<
   Omit<CreatePurchaseOrderDto, 'details'>
 > & {

@@ -28,6 +28,8 @@ export default function PurchaseOrdersPage() {
     fetchMyPurchaseOrders,
     createPurchaseOrder,
     updatePurchaseOrder,
+    updateDetailLine,
+    removeDetailLine,
   } = usePurchaseOrderStore();
 
   const [showForm, setShowForm] = useState(false);
@@ -111,6 +113,29 @@ export default function PurchaseOrdersPage() {
     }
   };
 
+  // Handlers para el acordeón de líneas dentro de PurchaseOrderTable.
+  // El store ya se encarga de refrescar el listado completo después.
+  const handleUpdateLine = async (
+    purchaseOrderId: number,
+    purchaseOrderDetailId: number,
+    dto: { orderQty?: number; unitPrice?: number; dueDate?: string },
+  ) => {
+    const token = getToken();
+    if (!token) return;
+    await updateDetailLine(purchaseOrderId, purchaseOrderDetailId, dto, token);
+    setSuccessMessage('Línea actualizada correctamente');
+  };
+
+  const handleRemoveLine = async (
+    purchaseOrderId: number,
+    purchaseOrderDetailId: number,
+  ) => {
+    const token = getToken();
+    if (!token) return;
+    await removeDetailLine(purchaseOrderId, purchaseOrderDetailId, token);
+    setSuccessMessage('Línea eliminada correctamente');
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -132,20 +157,16 @@ export default function PurchaseOrdersPage() {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <ClipboardList className="w-4 h-4 text-blue-600" />
+                    <ClipboardList className="w-4 h-4 text-blue-800" />
                   </div>
-                  <span className="text-xs font-semibold tracking-[0.18em] text-blue-600 uppercase">
-                    Órdenes de compra
+                  <span className="text-xs font-semibold tracking-[0.18em] text-blue-800 uppercase">
+                    Tus órdenes de compra
                   </span>
                 </div>
 
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
-                  Tus órdenes de compra
-                </h1>
-
                 <p className="mt-2 text-slate-500 max-w-xl">
                   Crea, revisa y actualiza el estado de tus órdenes de
-                  compra.
+                  compra. Haz clic en una orden para ver sus productos.
                 </p>
               </div>
 
@@ -233,6 +254,8 @@ export default function PurchaseOrdersPage() {
                   <PurchaseOrderTable
                     purchaseOrders={purchaseOrders}
                     onEdit={openEditModal}
+                    onUpdateLine={handleUpdateLine}
+                    onRemoveLine={handleRemoveLine}
                   />
                 )}
               </div>
@@ -241,7 +264,7 @@ export default function PurchaseOrdersPage() {
         </div>
       </main>
 
-      {/* MODAL CREAR/EDITAR */}
+      {/* MODAL CREAR/EDITAR CABECERA */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div

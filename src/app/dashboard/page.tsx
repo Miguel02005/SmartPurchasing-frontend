@@ -194,17 +194,13 @@ export default function DashboardPage() {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <ClipboardList className="w-4 h-4 text-blue-600" />
+                    <ClipboardList className="w-4 h-4 text-blue-800" />
                   </div>
 
-                  <span className="text-xs font-semibold tracking-[0.18em] text-blue-600 uppercase">
-                    Panel de control
+                  <span className="text-xs font-semibold tracking-[0.18em] text-blue-800 uppercase">
+                    Tu catálogo de productos
                   </span>
                 </div>
-
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
-                  Tu catálogo de productos
-                </h1>
 
                 <p className="mt-2 text-slate-500 max-w-xl">
                   Administra los productos asociados a tu cuenta y
