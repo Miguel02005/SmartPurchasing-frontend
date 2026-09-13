@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import FormInput from './FormInput';
 import FormButton from './FormButton';
+import { getToken } from '@/services/auth.service';
+import { useShipMethodStore } from '@/store/ship-method.store';
 import {
   CreatePurchaseOrderDto,
   UpdatePurchaseOrderDto,
@@ -18,17 +20,6 @@ interface PurchaseOrderFormProps {
   onSubmit: (dto: CreatePurchaseOrderDto | UpdatePurchaseOrderDto) => void;
   submitting?: boolean;
 }
-
-// IDs válidos conocidos de Purchasing.ShipMethod. El backend no expone un
-// endpoint para consultarlos y no podemos tocar el backend, así que los
-// dejamos fijos aquí.
-const SHIP_METHODS: { id: number; label: string }[] = [
-  { id: 1, label: '1 — Método de envío 1' },
-  { id: 2, label: '2 — Método de envío 2' },
-  { id: 3, label: '3 — Método de envío 3' },
-  { id: 4, label: '4 — Método de envío 4' },
-  { id: 5, label: '5 — Método de envío 5' },
-];
 
 interface DraftLine extends CreatePurchaseOrderDetailDto {
   key: string;
@@ -48,9 +39,26 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
   onSubmit,
   submitting = false,
 }) => {
-  const [shipMethodId, setShipMethodId] = useState<number>(
-    initialData?.shipMethodId ?? SHIP_METHODS[0].id,
+  const { shipMethods, loading: loadingShipMethods, error: shipMethodError, fetchShipMethods } =
+    useShipMethodStore();
+
+  useEffect(() => {
+    const token = getToken();
+    if (token) fetchShipMethods(token);
+  }, [fetchShipMethods]);
+
+  const [shipMethodId, setShipMethodId] = useState<number | ''>(
+    initialData?.shipMethodId ?? '',
   );
+
+  // Una vez llega el catálogo, si no había un shipMethodId inicial
+  // (creando una orden nueva) preseleccionamos el primero de la lista.
+  useEffect(() => {
+    if (shipMethodId === '' && shipMethods.length > 0) {
+      setShipMethodId(shipMethods[0].shipMethodId);
+    }
+  }, [shipMethods, shipMethodId]);
+
   const [orderDate, setOrderDate] = useState(
     initialData?.orderDate ? initialData.orderDate.slice(0, 10) : '',
   );
@@ -98,6 +106,7 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (shipMethodId === '') return;
 
     const base: CreatePurchaseOrderDto = {
       shipMethodId,
@@ -133,14 +142,25 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
             value={shipMethodId}
             onChange={(e) => setShipMethodId(Number(e.target.value))}
             required
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            disabled={loadingShipMethods || shipMethods.length === 0}
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
-            {SHIP_METHODS.map((sm) => (
-              <option key={sm.id} value={sm.id}>
-                {sm.label}
+            {shipMethods.length === 0 && (
+              <option value="">
+                {loadingShipMethods
+                  ? 'Cargando métodos de envío...'
+                  : 'No hay métodos de envío disponibles'}
+              </option>
+            )}
+            {shipMethods.map((sm) => (
+              <option key={sm.shipMethodId} value={sm.shipMethodId}>
+                {sm.name}
               </option>
             ))}
           </select>
+          {shipMethodError && (
+            <p className="mt-1 text-xs text-red-600">{shipMethodError}</p>
+          )}
         </div>
 
         <FormInput

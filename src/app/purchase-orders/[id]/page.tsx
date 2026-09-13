@@ -175,6 +175,9 @@ export default function PurchaseOrderDetailPage() {
     className: 'bg-slate-100 text-slate-600',
   };
   const details = order.details ?? [];
+  // El backend puebla shipMethod en GET /purchase-orders/:id (relations).
+  // Si por algo llegara sin poblar, mostramos el ID como respaldo.
+  const shipMethodLabel = order.shipMethod?.name ?? `#${order.shipMethodId}`;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -217,8 +220,7 @@ export default function PurchaseOrderDetailPage() {
                   PO-{order.purchaseOrderId}
                 </h1>
                 <p className="text-xs text-slate-400">
-                  Rev. {order.revisionNumber} · Método envío #
-                  {order.shipMethodId}
+                  Rev. {order.revisionNumber} · Método envío: {shipMethodLabel}
                 </p>
               </div>
             </div>

@@ -148,7 +148,7 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({
               Fecha
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Envío
+              F. envío
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
               Estado
@@ -181,6 +181,7 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({
 
             const isExpanded = expandedId === po.purchaseOrderId;
             const details = po.details ?? [];
+            const shipMethodLabel = po.shipMethod?.name ?? `#${po.shipMethodId}`;
 
             return (
               <React.Fragment key={po.purchaseOrderId}>
@@ -210,6 +211,9 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({
                         <p className="text-xs text-slate-400">
                           Rev. {po.revisionNumber} · {details.length}{' '}
                           {details.length === 1 ? 'línea' : 'líneas'}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {shipMethodLabel}
                         </p>
                       </div>
                     </div>
