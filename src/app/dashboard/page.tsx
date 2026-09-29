@@ -17,7 +17,9 @@ import { useAuth } from '@/hooks/use-auth';
 import { getToken } from '@/services/auth.service';
 import {
   getMyProducts,
+  getProduct,
   createProduct,
+  updateProduct,
   deleteProduct,
 } from '@/services/product.service';
 
@@ -34,6 +36,7 @@ export default function DashboardPage() {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
 
@@ -75,7 +78,7 @@ export default function DashboardPage() {
     setError('');
 
     try {
-      const newProduct = await createProduct(
+      await createProduct(
         {
           ...dto,
           businessEntityId: user.businessEntityId as number,
@@ -83,19 +86,67 @@ export default function DashboardPage() {
         token
       );
 
-      setProducts((prev) => [...prev, newProduct]);
+      // POST /products/create devuelve la entidad cruda (sin `product`),
+      // así que pedimos el registro completo para tener product.name.
+      const fullProduct = await getProduct(dto.productId, token);
+
+      setProducts((prev) => [...prev, fullProduct]);
 
       // Cerrar modal después de crear correctamente
       setShowForm(false);
+                setEditingProduct(null);
     } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
       setError(
-        err instanceof Error
-          ? err.message
-          : 'Error al crear el producto'
+        !msg || msg === 'Internal server error'
+          ? 'No se pudo crear el producto. Verifica que el ID exista en el catálogo de productos y que el código de unidad sea válido (ej. EA).'
+          : msg
       );
     } finally {
       setSubmitting(false);
     }
+  };
+
+
+  const handleUpdate = async (
+    dto: Omit<CreateProductDto, 'businessEntityId'>
+  ) => {
+    const token = getToken();
+
+    if (!token || !editingProduct) return;
+
+    setSubmitting(true);
+    setError('');
+
+    try {
+      // El PATCH no acepta productId ni businessEntityId
+      const { productId: _productId, ...changes } = dto;
+      void _productId;
+
+      await updateProduct(editingProduct.productId, changes, token);
+
+      // PATCH devuelve la entidad cruda (sin `product`): refrescamos la fila
+      const fullProduct = await getProduct(editingProduct.productId, token);
+
+      setProducts((prev) =>
+        prev.map((p) => (p.productId === fullProduct.productId ? fullProduct : p))
+      );
+
+      setShowForm(false);
+      setEditingProduct(null);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Error al actualizar el producto'
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEdit = (product: Product) => {
+    setError('');
+    setEditingProduct(product);
+    setShowForm(true);
   };
 
 
@@ -211,6 +262,7 @@ export default function DashboardPage() {
               {/* Botón agregar */}
               <button
                 onClick={() => {
+                  setEditingProduct(null);
                   setShowForm(true);
                   setError('');
                 }}
@@ -404,7 +456,8 @@ export default function DashboardPage() {
 
                     <button
                       onClick={() => {
-                        setShowForm(true);
+                        setEditingProduct(null);
+                  setShowForm(true);
                         setError('');
                       }}
                       className="
@@ -429,6 +482,7 @@ export default function DashboardPage() {
 
                   <ProductTable
                     products={products}
+                    onEdit={handleEdit}
                     onDelete={handleDelete}
                   />
 
@@ -459,6 +513,7 @@ export default function DashboardPage() {
             onClick={() => {
               if (!submitting) {
                 setShowForm(false);
+                setEditingProduct(null);
                 setError('');
               }
             }}
@@ -495,11 +550,13 @@ export default function DashboardPage() {
 
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900">
-                    Nuevo producto
+                    {editingProduct ? 'Editar producto' : 'Nuevo producto'}
                   </h2>
 
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Agrega la información del producto a tu catálogo.
+                    {editingProduct
+                      ? 'Actualiza las condiciones de compra de este producto.'
+                      : 'Agrega la información del producto a tu catálogo.'}
                   </p>
                 </div>
 
@@ -511,6 +568,7 @@ export default function DashboardPage() {
                 disabled={submitting}
                 onClick={() => {
                   setShowForm(false);
+                setEditingProduct(null);
                   setError('');
                 }}
                 className="
@@ -538,7 +596,7 @@ export default function DashboardPage() {
 
                 <div>
                   <p className="text-sm font-semibold text-red-800">
-                    No se pudo crear el producto
+                    {editingProduct ? 'No se pudo actualizar el producto' : 'No se pudo crear el producto'}
                   </p>
 
                   <p className="text-sm text-red-600 mt-0.5">
@@ -554,7 +612,9 @@ export default function DashboardPage() {
             <div className="p-6">
 
               <ProductForm
-                onSubmit={handleCreate}
+                key={editingProduct?.productId ?? 'new'}
+                initialValues={editingProduct ?? undefined}
+                onSubmit={editingProduct ? handleUpdate : handleCreate}
                 submitting={submitting}
               />
 

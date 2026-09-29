@@ -13,61 +13,44 @@ async function handleResponse<T>(response: Response): Promise<T> {
     }
     throw new Error(message);
   }
-  return response.json();
+
+  // 204 No Content (ej. DELETE de detalle de orden) o body vacío:
+  // response.json() lanzaría un error de parseo.
+  if (response.status === 204) {
+    return undefined as T;
+  }
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
+}
+
+type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+async function request<T>(
+  method: Method,
+  endpoint: string,
+  data?: unknown,
+  token?: string,
+): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    ...(data !== undefined ? { body: JSON.stringify(data) } : {}),
+  });
+  return handleResponse<T>(response);
 }
 
 export const api = {
-  get: async <T>(endpoint: string, token?: string): Promise<T> => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
-    return handleResponse<T>(response);
-  },
-  post: async <T>(endpoint: string, data: unknown, token?: string): Promise<T> => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(data),
-    });
-    return handleResponse<T>(response);
-  },
-  put: async <T>(endpoint: string, data: unknown, token?: string): Promise<T> => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(data),
-    });
-    return handleResponse<T>(response);
-  },
-  patch: async <T>(endpoint: string, data: unknown, token?: string): Promise<T> => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(data),
-    });
-    return handleResponse<T>(response);
-  },
-  delete: async <T>(endpoint: string, token?: string): Promise<T> => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
-    return handleResponse<T>(response);
-  },
+  get: <T>(endpoint: string, token?: string) =>
+    request<T>('GET', endpoint, undefined, token),
+  post: <T>(endpoint: string, data: unknown, token?: string) =>
+    request<T>('POST', endpoint, data, token),
+  put: <T>(endpoint: string, data: unknown, token?: string) =>
+    request<T>('PUT', endpoint, data, token),
+  patch: <T>(endpoint: string, data: unknown, token?: string) =>
+    request<T>('PATCH', endpoint, data, token),
+  delete: <T>(endpoint: string, token?: string) =>
+    request<T>('DELETE', endpoint, undefined, token),
 };

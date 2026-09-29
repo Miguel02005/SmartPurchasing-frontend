@@ -1,14 +1,16 @@
 import React from 'react';
-import { Trash2, Package } from 'lucide-react';
+import { Trash2, Package, Pencil } from 'lucide-react';
 import { Product } from '@/types/product.types';
 
 interface ProductTableProps {
   products: Product[];
+  onEdit: (product: Product) => void;
   onDelete: (productId: number) => void;
 }
 
 const ProductTable: React.FC<ProductTableProps> = ({
   products,
+  onEdit,
   onDelete,
 }) => {
   return (
@@ -57,11 +59,12 @@ const ProductTable: React.FC<ProductTableProps> = ({
 
                   <div>
                     <p className="text-sm font-semibold text-slate-800">
-                      Producto #{p.productId}
+                      {p.product?.name ?? 'Producto no encontrado'}
                     </p>
 
                     <p className="text-xs text-slate-400">
-                      ID {p.productId}
+                      {p.product?.productNumber ?? `ID ${p.productId}`}
+                      {p.product?.color ? ` · ${p.product.color}` : ''}
                     </p>
                   </div>
                 </div>
@@ -70,7 +73,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
               {/* Unidad */}
               <td className="px-4 py-4">
                 <span className="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                  {p.unitMeasureCode}
+                  {p.unitMeasureCode.trim()}
                 </span>
               </td>
 
@@ -109,6 +112,22 @@ const ProductTable: React.FC<ProductTableProps> = ({
 
               {/* Eliminar */}
               <td className="px-4 py-4 text-right">
+                <button
+                  onClick={() => onEdit(p)}
+                  className="
+                    inline-flex items-center justify-center
+                    w-9 h-9
+                    rounded-lg
+                    text-slate-400
+                    hover:text-blue-700
+                    hover:bg-blue-50
+                    transition-colors
+                  "
+                  title="Editar producto"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+
                 <button
                   onClick={() => onDelete(p.productId)}
                   className="

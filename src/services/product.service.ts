@@ -1,23 +1,38 @@
 import { api } from '@/lib/api';
-import { Product, CreateProductDto, UpdateProductDto } from '@/types/product.types';
+import {
+  Product,
+  ProductRaw,
+  CreateProductDto,
+  UpdateProductDto,
+} from '@/types/product.types';
 
 export async function getMyProducts(token: string): Promise<Product[]> {
   return api.get<Product[]>('/products/mine', token);
 }
 
+// A diferencia de create/update, este SÍ trae el objeto `product` (join).
+export async function getProduct(
+  productId: number,
+  token: string,
+): Promise<Product> {
+  return api.get<Product>(`/products/${productId}`, token);
+}
+
+// Devuelve la entidad cruda (sin `product`). Para obtener el producto
+// completo, encadenar con getProduct.
 export async function createProduct(
   data: CreateProductDto,
   token: string,
-): Promise<Product> {
-  return api.post<Product>('/products/create', data, token);
+): Promise<ProductRaw> {
+  return api.post<ProductRaw>('/products/create', data, token);
 }
 
 export async function updateProduct(
   productId: number,
   data: UpdateProductDto,
   token: string,
-): Promise<Product> {
-  return api.patch<Product>(`/products/${productId}`, data, token);
+): Promise<ProductRaw> {
+  return api.patch<ProductRaw>(`/products/${productId}`, data, token);
 }
 
 export async function deleteProduct(
