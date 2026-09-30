@@ -43,7 +43,7 @@ export default function Home() {
             className="float-card hidden lg:block absolute left-0 top-4 bg-amber-50 border border-amber-100 rounded-2xl shadow-lg p-4 w-56 text-left"
             style={{ ["--rot" as string]: "-6deg" } as React.CSSProperties}
           >
-            <p className="text-sm text-amber-900 leading-snug">
+            <p className="text-sm text-gray-300 leading-snug">
               Registra proveedores y aprueba órdenes de compra en minutos.
             </p>
             <div className="mt-3 w-7 h-7 rounded-lg bg-[#164b8a] flex items-center justify-center">
