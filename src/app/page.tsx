@@ -40,7 +40,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-6 pt-24 pb-40 md:pb-56 text-center relative">
           {/* Floating cards */}
           <div
-            className="float-card hidden lg:block absolute left-0 top-4 bg-amber-50 border border-amber-100 rounded-2xl shadow-lg p-4 w-56 text-left"
+            className="float-card hidden lg:block absolute left-0 top-4 bg-gray-50 border border-gray-100 rounded-2xl shadow-lg p-4 w-56 text-left"
             style={{ ["--rot" as string]: "-6deg" } as React.CSSProperties}
           >
             <p className="text-sm text-gray-300 leading-snug">
