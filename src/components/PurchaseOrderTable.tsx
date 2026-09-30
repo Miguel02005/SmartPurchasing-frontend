@@ -14,9 +14,13 @@ import {
   Boxes,
 } from 'lucide-react';
 import { PurchaseOrder, PurchaseOrderDetail } from '@/types/purchase-order.types';
+import { ProductSummary } from '@/types/product.types';
 
 interface PurchaseOrderTableProps {
   purchaseOrders: PurchaseOrder[];
+  // Catálogo del vendor indexado por productId, para mostrar el nombre real
+  // del producto en cada línea (el detalle de la orden solo trae productId).
+  productsById?: Record<number, ProductSummary>;
   onEdit: (purchaseOrder: PurchaseOrder) => void;
   onUpdateLine: (
     purchaseOrderId: number,
@@ -69,6 +73,7 @@ interface EditDraft {
 
 const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({
   purchaseOrders,
+  productsById = {},
   onEdit,
   onUpdateLine,
   onRemoveLine,
@@ -306,6 +311,7 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({
                             {details.map((line) => {
                               const isEditingLine =
                                 editingLineId === line.purchaseOrderDetailId;
+                              const productInfo = productsById[line.productId];
 
                               return (
                                 <div
@@ -313,16 +319,23 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({
                                   className="group px-5 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-slate-50/60 transition-colors"
                                 >
                                   {/* Producto */}
-                                  <div className="flex items-center gap-3 sm:w-48 shrink-0">
+                                  <div className="flex items-center gap-3 sm:w-64 shrink-0">
                                     <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
                                       <Package className="w-3.5 h-3.5 text-indigo-500" />
                                     </div>
-                                    <div>
-                                      <p className="text-xs text-slate-400">
-                                        Línea #{line.purchaseOrderDetailId}
-                                      </p>
+                                    <div className="min-w-0">
                                       <p className="text-sm font-semibold text-slate-800">
-                                        Producto {line.productId}
+                                        {productInfo?.name ??
+                                          `Producto #${line.productId}`}
+                                      </p>
+                                      <p className="text-xs text-slate-400">
+                                        {productInfo?.productNumber
+                                          ? `${productInfo.productNumber} · `
+                                          : ''}
+                                        {productInfo?.color
+                                          ? `${productInfo.color} · `
+                                          : ''}
+                                        Línea #{line.purchaseOrderDetailId}
                                       </p>
                                     </div>
                                   </div>

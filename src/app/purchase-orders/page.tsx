@@ -7,6 +7,8 @@ import { ClipboardList, Plus, AlertCircle, X, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth';
 import { getToken } from '@/services/auth.service';
 import { usePurchaseOrderStore } from '@/store/purchase-order.store';
+import { getMyProducts } from '@/services/product.service';
+import { ProductSummary } from '@/types/product.types';
 import {
   PurchaseOrder,
   CreatePurchaseOrderDto,
@@ -37,6 +39,9 @@ export default function PurchaseOrdersPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [productsById, setProductsById] = useState<
+    Record<number, ProductSummary>
+  >({});
 
   useEffect(() => {
     if (!successMessage) return;
@@ -55,6 +60,16 @@ export default function PurchaseOrdersPage() {
     const token = getToken();
     if (!token) return;
     fetchMyPurchaseOrders(token);
+
+    // Catálogo del vendor para mostrar el nombre de cada producto en las
+    // líneas. Si falla, las líneas siguen mostrando "Producto #id".
+    getMyProducts(token)
+      .then((list) =>
+        setProductsById(
+          Object.fromEntries(list.map((p) => [p.productId, p.product])),
+        ),
+      )
+      .catch(() => {});
   }, [isAuthenticated, fetchMyPurchaseOrders]);
 
   const openCreateModal = () => {
@@ -253,6 +268,7 @@ export default function PurchaseOrdersPage() {
                 ) : (
                   <PurchaseOrderTable
                     purchaseOrders={purchaseOrders}
+                    productsById={productsById}
                     onEdit={openEditModal}
                     onUpdateLine={handleUpdateLine}
                     onRemoveLine={handleRemoveLine}
